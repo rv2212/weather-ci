@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import json
 
 
 class Scraper:
@@ -26,5 +27,10 @@ class Scraper:
         return result
 
 
-data = Scraper()
-print(data.getContentFromPage("https://www.bbc.co.uk/weather/2644605"))
+def lambda_handler(event, context):
+    data = Scraper()
+    print(data.getContentFromPage("https://www.bbc.co.uk/weather/2644605"))
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }
