@@ -1,36 +1,69 @@
 from bs4 import BeautifulSoup
+from datetime import datetime, timezone, date
+import pandas as pd
 import requests
+import boto3
 import json
 
 
 class Scraper:
 
     def __init__(self):
-        pass
+        self.url = "https://www.bbc.co.uk/weather/2644605"
 
-    @staticmethod
-    def getContentFromPage(url):
-        result = {}
-        soup = BeautifulSoup(requests.get(url).content, 'html.parser')
+    def getContentFromPage(self):
+        """
+        Get the wether data from the page
+        :param url: weather url
+        :return: weather data dictionary
+        """
+        try:
 
-        result['Temperature'] = soup.find('span', attrs={"class": "wr-value--temperature--c"}).text
+            result = {}
+            soup = BeautifulSoup(requests.get(self.url).content, 'html.parser')
 
-        # Wind speed
-        result['Wind_speed'] = soup.find('span', attrs={'class': "wr-value--windspeed wr-value--windspeed--mph"}).text
+            # Date
+            today = date.today()
+            d1 = today.strftime("%d/%m/%Y")
+            result['Date'] = d1
 
-        # time slot
-        result['time'] = soup.find('span', attrs={'class': 'wr-time-slot-primary__time'}).text
+            # time slot
+            result['Time'] = soup.find('span', attrs={'class': 'wr-time-slot-primary__time'}).text
 
-        # Precipitation
-        result['Precipitation'] = soup.find('span', attrs={'class': "wr-u-font-weight-500"}).text
+            result['Temperature'] = soup.find('span', attrs={"class": "wr-value--temperature--c"}).text
+            # Wind speed
+            result['Wind_speed'] = soup.find('span',
+                                             attrs={'class': "wr-value--windspeed wr-value--windspeed--mph"}).text
 
-        return result
+            # Precipitation
+            result['Precipitation'] = soup.find('span', attrs={'class': "wr-u-font-weight-500"}).text
+
+        except AttributeError as e:
+            print(f"Attribute not found {e}")
+
+        else:
+            return result
 
 
 def lambda_handler(event, context):
     data = Scraper()
-    print(data.getContentFromPage("https://www.bbc.co.uk/weather/2644605"))
+    result = data.getContentFromPage()
+    bucketName = "hourly-weather"
+    today = datetime.now(timezone.utc)
+
+    fileName = "temp" + str(today) + ".json"
+
+    s3 = boto3.client("s3")
+    uploadByteStream = bytes(json.dumps(result).encode('UTF-8'))
+    s3.put_object(bucketName, fileName, uploadByteStream)
+
+    print('Put Complete')
+
     return {
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
+
+
+data = Scraper()
+print(data.getContentFromPage())
