@@ -1,6 +1,5 @@
 requests==2.25.1
 beautifulsoup4==4.9.3
-bbc_feeds==2.0
 boto3==1.16.38
 DateTime==4.3
 pandas==1.2.5
