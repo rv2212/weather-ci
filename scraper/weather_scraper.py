@@ -1,7 +1,6 @@
 import logging
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, date
-from botocore.exceptions import ClientError
 import requests
 import boto3
 import json
@@ -39,14 +38,10 @@ class Scraper:
             # Precipitation
             result['Precipitation'] = soup.find('span', attrs={'class': "wr-u-font-weight-500"}).text
 
+            return put_s3_object("ec2-s3-weather-v7s30dq4fxw", result)
+
         except AttributeError as e:
-            print(f"Attribute not found {e}")
-
-        else:
-            with open("data.json", "w") as fp:
-                json.dump(result, fp)
-
-            return write_to_s3("ec2-s3-weather-v7s30dq4fxw", fp)
+            logging.error(f"Attribute not found {e}")
 
 
 def lambda_handler(event, context):
@@ -69,15 +64,16 @@ def lambda_handler(event, context):
     }
 
 
-def write_to_s3(file_name, bucket_name):
-    s3 = boto3.client("s3")
-    PREFIX = 'weather-data/'
+def put_s3_object(bucket_name, object_body):
+    PREFIX = "weather-data" + "/" + "temp_" + datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p") + ".json"
     try:
-        res = s3.put_object(Body=file_name, bucket_name=bucket_name, key=PREFIX + '_DATA').put(Body=file_name)
-    except ClientError as e:
-        logging.error(e)
-    else:
-        return res
+        s3 = boto3.client('s3')
+        s3.put_object(Bucket=bucket_name, Body=bytes(json.dumps(object_body).encode("UTF-8")), Key=PREFIX, ACL='public-read',
+                      ContentType='application/json')
+        print("S3 file put done")
+    except Exception as e:
+        logging.error('Error occurred :' + str(e))
+    return ""
 
 
 data = Scraper()
