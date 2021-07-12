@@ -1,6 +1,5 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample: Create an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based on the region in which the stack is run. This example creates an EC2 security group for the instance to give you SSH access. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
   "Parameters": {
     "KeyName": {
       "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
@@ -36,34 +35,23 @@
         "Arch": "HVM64"
       }
     },
-    "AWSInstanceType2NATArch": {
-      "t1.micro": {
-        "Arch": "NATHVM64"
-      },
-      "t2.micro": {
-        "Arch": "NATHVM64"
-      }
-    },
     "AWSRegionArch2AMI": {
       "eu-west-1": {
-        "HVM64": "ami-015232c01a82b847b",
+        "HVM64": "ami-08935252a36e25f85",
         "HVMG2": "ami-0d5299b1c6112c3c7"
       },
       "eu-west-2": {
-        "HVM64": "ami-0765d48d7e15beb93",
+        "HVM64": "ami-01419b804382064e4",
         "HVMG2": "NOT_SUPPORTED"
       }
     }
   },
   "Resources": {
-    "EC2Instance": {
+    "ec2Instance": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
         "InstanceType": {
           "Ref": "InstanceType"
-        },
-        "IamInstanceProfile": {
-          "Ref": "RootInstanceProfile"
         },
         "SecurityGroups": [
           {
@@ -92,54 +80,6 @@
         }
       }
     },
-    "RootRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "ec2.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "root",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": "*",
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "RootInstanceProfile": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "Properties": {
-        "Path": "/",
-        "Roles": [
-          {
-            "Ref": "RootRole"
-          }
-        ]
-      }
-    },
     "InstanceSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -155,20 +95,32 @@
           }
         ]
       }
+    },
+    "weather": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {},
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "578de650-9ae7-4a2d-8caa-6ebc5990a94b"
+        }
+      },
+      "DependsOn": [
+        "ec2Instance"
+      ]
     }
   },
   "Outputs": {
     "InstanceId": {
       "Description": "InstanceId of the newly created EC2 instance",
       "Value": {
-        "Ref": "EC2Instance"
+        "Ref": "ec2Instance"
       }
     },
     "AZ": {
       "Description": "Availability Zone of the newly created EC2 instance",
       "Value": {
         "Fn::GetAtt": [
-          "EC2Instance",
+          "ec2Instance",
           "AvailabilityZone"
         ]
       }
@@ -177,7 +129,7 @@
       "Description": "Public DNSName of the newly created EC2 instance",
       "Value": {
         "Fn::GetAtt": [
-          "EC2Instance",
+          "ec2Instance",
           "PublicDnsName"
         ]
       }
@@ -186,7 +138,7 @@
       "Description": "Public IP address of the newly created EC2 instance",
       "Value": {
         "Fn::GetAtt": [
-          "EC2Instance",
+          "ec2Instance",
           "PublicIp"
         ]
       }
