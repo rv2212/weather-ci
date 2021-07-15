@@ -1,6 +1,6 @@
 # weather-ci
 
-Weather Scraper script extracts the current hour temp data from bbc weather. Jenkins (EC2)  build is triggered withe very git push.  
+Weather Scraper script extracts the current hour temp data from bbc weather. Jenkins (EC2)  build is triggered with every git push.  
 
 The data is uploaded to S3 bucket.
 
