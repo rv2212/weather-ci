@@ -52,7 +52,7 @@ def write_to_s3(bucket_name, object_body):
         :param object_body: data to write
         :return: True if file was uploaded else False
         """
-    PREFIX = "weather-data" + "temp_" + datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p") + ".json"
+    PREFIX = "weather-data" + "/" + "temp_" + datetime.now().strftime("%Y_%m_%d-%I:%M:%S_%p") + ".json"
     try:
         s3 = boto3.client('s3')
         s3.put_object(Bucket=bucket_name, Body=bytes(json.dumps(object_body).encode("UTF-8")), Key=PREFIX,
