@@ -64,26 +64,5 @@ def write_to_s3(bucket_name, object_body):
         return False
     return True
 
-
-def lambda_handler(event, context):
-    weather_data = Scraper()
-    weather_data.getContentFromPage()
-    bucketName = "hourly-weather"
-    today = datetime.now(timezone.utc)
-
-    fileName = "temp" + str(today) + ".json"
-
-    s3 = boto3.client("s3")
-    uploadByteStream = bytes(json.dumps(weather_data).encode('UTF-8'))
-    s3.put_object(bucketName, fileName, uploadByteStream)
-
-    print('Put Complete')
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
-
-
 data = Scraper()
 data.getContentFromPage()
